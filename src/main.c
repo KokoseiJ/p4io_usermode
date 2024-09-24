@@ -1,9 +1,24 @@
 #include <stdio.h>
 #include <libusb.h>
 
-#define VID 0x1CCF
-#define PID 0x8010
+#define VID 0x0b05
+#define PID 0x19b6
+//#define VID 0x1CCF
+//#define PID 0x8010
 
+/*
+LIBUSB_ENDPOINT_TRANSFER_TYPE_CONTROL
+Control endpoint.
+
+LIBUSB_ENDPOINT_TRANSFER_TYPE_ISOCHRONOUS
+Isochronous endpoint.
+
+LIBUSB_ENDPOINT_TRANSFER_TYPE_BULK
+Bulk endpoint.
+
+LIBUSB_ENDPOINT_TRANSFER_TYPE_INTERRUPT
+Interrupt endpoint.
+*/
 
 int main() {
     int rtnval, i, j, k;
@@ -14,7 +29,7 @@ int main() {
     struct libusb_interface_descriptor *iface_desc = NULL;
     struct libusb_endpoint_descriptor *endpoint = NULL;
 
-    libusb_init_context();
+    libusb_init_context(NULL, NULL, 0);
 
     dev_handle = libusb_open_device_with_vid_pid(NULL, VID, PID); // to be freed
     if (dev_handle == NULL) {
@@ -29,23 +44,41 @@ int main() {
     
     for (i=0; i<config->bNumInterfaces; i++) {
         interface = &config->interface[i];
-        printf("[*] interface->num_altsetting: %d\n", interface->num_altsetting);
+        printf("[*] interface[%d]->num_altsetting: %d\n", i, interface->num_altsetting);
         for (j=0; j<interface->num_altsetting; j++) {
             iface_desc = &interface->altsetting[j];
-            printf("[*] iface->bNumEndPoints: %hhu\n", iface_desc->bNumEndpoints);
+            printf("[*] iface[%d]->bNumEndPoints: %hhu\n", j, iface_desc->bNumEndpoints);
 
-            for (i=0; i<iface->bNumEndPoints; i++) {
-                endpoint = &iface->bNumEndPoints[i]
-                printf("[*] endpoint[%d] addr:0x%02hhx %s\n", endpoint->bEndPointAddress, endpoint->bEndPointAddress>>7 == 1 : "IN" : "OUT");
+            for (k=0; k<iface_desc->bNumEndpoints; k++) {
+                endpoint = &iface_desc->endpoint[k];
+                printf("[*] endpoint[%d] addr:0x%02hhx %s\n", k, endpoint->bEndpointAddress, endpoint->bEndpointAddress>>7 == 1 ? "IN" : "OUT");
                 printf("[*] wMaxPacketSize: %hu\n", endpoint->wMaxPacketSize);
+                printf("[*] transfer type: ");
+                switch (endpoint->bmAttributes & 3) {
+                    case 0:
+                    printf("Control");
+                    break;
+                    case 1:
+                    printf("Isochronous");
+                    break;
+                    case 2:
+                    printf("Bulk");
+                    break;
+                    case 3:
+                    printf("Interrupt");
+                    break;
+                }
+                printf("\n\n");
             }
+            printf("\n");
         }
+        printf("\n");
     }
 
     libusb_free_config_descriptor(config);
     libusb_close(dev_handle);
 
-label CLEAN:
+CLEAN:
     libusb_exit(NULL);
 }
 
