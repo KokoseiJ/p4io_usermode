@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <libusb.h>
 
-#define VID 0x0b05
-#define PID 0x19b6
-//#define VID 0x1CCF
-//#define PID 0x8010
+//#define VID 0x0b05
+//#define PID 0x19b6
+#define VID 0x1CCF
+#define PID 0x8010
+
+#define INTERRUPT_SIZE 0x10
+#define BULK_SIZE 64
 
 /*
 LIBUSB_ENDPOINT_TRANSFER_TYPE_CONTROL
